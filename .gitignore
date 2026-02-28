@@ -1,0 +1,8 @@
+
+# Virtual envs
+.venv/
+backend/.venv/
+venv*/
+__pycache__/
+*.pyc
+.DS_Store
