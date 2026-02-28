@@ -33,12 +33,10 @@ fi
 # Prefer macOS system python to create venv (avoid conda)
 SYS_PY="/usr/bin/python3"
 if [[ ! -x "$SYS_PY" ]]; then
-  if command -v python3 >/dev/null 2>&1; then SYS_PY="$(command -v python3)"; fi
-fi
-if [[ -z "${SYS_PY:-}" ]]; then
-  echo "[ERROR] Python 3 not found. Install Python 3 first."
+  echo "[ERROR] /usr/bin/python3 not found. Install Python 3 (macOS) first."
   pause; exit 1
 fi
+
 
 # Create venv if missing
 if [[ ! -x "$PY" ]]; then
@@ -48,6 +46,7 @@ fi
 
 echo "[INFO] Using venv python: $PY"
 "$PY" -c "import sys; print('[INFO] Python:', sys.version.split()[0], '|', sys.executable)"
+"$PY" -m pip install --upgrade pip
 
 # Pick requirements file
 REQ=""
