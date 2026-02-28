@@ -1,0 +1,742 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }} - Exam</title>
+  <style>
+    :root{
+      --bg:#a9bee6;
+      --panel:#ffffffb9;
+      --text:#111827;
+      --muted:#6b7280c0;
+      --line:#035c2f;
+      --primary:#080330;
+      --primaryHover:#4ea9e6;
+
+      --correctBg:#dcfce7;
+      --correctBd:#86efac;
+      --wrongBg:#fee2e2;
+      --wrongBd:#fca5a5;
+
+      /* Tutor UI */
+      --tutorBg:#ffffff;
+      --tutorSoft:#f8fafc;
+      --tutorBd:#e5e7eb;
+      --tutorShadow: 0 6px 18px rgba(0,0,0,0.08);
+    }
+
+    body {
+      font-family: Arial, Helvetica, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 14px 16px 18px; }
+
+    .header {
+      position: sticky; top: 0; z-index: 10;
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .header-inner {
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+      padding: 10px 16px; max-width: 1180px; margin: 0 auto;
+    }
+
+    .h-left { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+
+    .h-title {
+      font-weight: 700; font-size: 14px; letter-spacing: 0.2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .h-sub {
+      font-size: 12px; color: var(--muted);
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+
+    .timerBox { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .timeLabel { font-size: 12px; color: var(--muted); }
+
+    .timeValue {
+      border: 1px solid var(--line); background: #fff; border-radius: 6px;
+      padding: 6px 10px; font-weight: 800; min-width: 92px; text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .progress {
+      width: 160px; height: 8px; border-radius: 999px;
+      background: #eef2ff; border: 1px solid var(--line); overflow: hidden;
+    }
+    .progress > div { height: 100%; width: 0%; background: var(--primary); }
+
+    .layout {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;
+    }
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .progress { display: none; }
+    }
+
+    .pane {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 12px;
+      height: 76vh;
+      overflow: auto;
+    }
+
+    .passage { white-space: pre-line; line-height: 1.55; font-size: 14px; }
+
+    .qbox {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      background: #fff;
+    }
+
+    .qhead {
+      font-weight: 800; margin-bottom: 8px; font-size: 14px;
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+
+    .qprompt { margin-bottom: 10px; font-size: 14px; line-height: 1.45; white-space: pre-wrap; }
+
+    .qintro {
+      margin: 8px 0 10px;
+      font-size: 14px;
+      line-height: 1.45;
+      font-style: italic;
+      color: var(--text);
+    }
+
+    .hint { font-size: 12px; color: var(--muted); margin: 0 0 8px 0; }
+    .hint.strong { font-weight: 700; }
+
+    .choice {
+      display: flex; gap: 10px; padding: 10px;
+      border: 1px solid var(--line); border-radius: 6px;
+      margin: 8px 0; background: #fff;
+    }
+    .choice:hover { border-color: var(--primary); }
+    .choice input { transform: translateY(1px); }
+
+    .choice.correct { background: var(--correctBg); border-color: var(--correctBd); }
+    .choice.wrong { background: var(--wrongBg); border-color: var(--wrongBd); }
+
+    .rightBox { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .topActions { display: flex; align-items: center; gap: 10px; }
+
+    .btn {
+      background: var(--primary); color: #fff;
+      border: 1px solid var(--primary); border-radius: 6px;
+      padding: 10px 14px; font-weight: 800;
+      cursor: pointer; text-decoration: none; display: inline-block; user-select: none;
+    }
+    .btn:hover { background: var(--primaryHover); border-color: var(--primaryHover); }
+
+    .btn.secondary { background: #ffffff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.secondary:hover { background: #eef2ff; border-color: var(--primaryHover); }
+
+    .topActions .btn { padding: 8px 12px; font-size: 12px; border-radius: 6px; }
+
+    .badge {
+      display: inline-block; padding: 2px 8px; border: 1px solid var(--line);
+      border-radius: 999px; font-size: 12px; color: var(--muted);
+    }
+
+    /* Q9 helpers */
+    .q9Box { border: 1px solid var(--line); border-radius: 8px; background: #fff; padding: 10px; margin-bottom: 10px; }
+    .q9Label { font-size: 12px; color: var(--muted); margin-bottom: 6px; font-weight: 700; }
+    .q9Sentence {
+      border-left: 4px solid var(--primary);
+      padding: 8px 10px; background: #f8fafc; border-radius: 6px;
+      line-height: 1.45; font-size: 14px; white-space: pre-wrap;
+    }
+
+    .marker {
+      display: inline-block; padding: 1px 6px; border: 1px solid var(--line);
+      border-radius: 999px; font-size: 12px; font-weight: 800;
+      color: var(--primary); background: #eef2ff; margin: 0 2px;
+    }
+
+    //* Tutor card (refined) */
+.tutorCard{
+  border: 1px solid var(--tutorBd);
+  background: linear-gradient(180deg, #ffffff 0%, var(--tutorSoft) 100%);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: var(--tutorShadow);
+  margin-top: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.tutorCard::before{content:"";
+  position:absolute;
+  left:0; top:0;
+  height: 100%;
+  width: 7px;
+  background: linear-gradient(180deg, #4ea9e6 0%, #080330 100%);
+  opacity: 1;
+}
+
+.tutorTitle{
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 8px 0;
+  padding-left: 10px;
+}
+
+.tutorTitleLeft{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+
+.tutorIcon{
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: radial-gradient(circle at 30% 30%, #ffffff 0%, #eef2ff 45%, rgba(78,169,230,0.25) 100%);
+  border: 1px solid rgba(22, 61, 187, 0.781);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight: 900;
+  color: var(--primary);
+  flex: 0 0 auto;
+  box-shadow: 0 6px 16px rgba(65, 190, 248, 0.863);
+  transform: translateY(-1px);
+}
+
+.tutorName{
+  font-size: 14px;
+  letter-spacing: 0.3px;
+  font-weight: 900;
+}
+
+.tutorHint{
+  font-size: 12px;
+  color: rgba(107,114,128,0.95);
+  margin: 0 0 10px 0;
+  line-height: 1.5;
+  padding-left: 10px;
+}
+
+.tutorClearTop{
+  border: 1px solid var(--tutorBd);
+  background: #ffffff;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-weight: 900;
+  font-size: 12px;
+  cursor: pointer;
+}
+.tutorClearTop:hover{
+  background: #eef2ff;
+  color: var(--primary);
+  border-color: var(--primaryHover);
+}
+
+.tutorInput{
+  width: 100%;
+  border: 1px solid var(--tutorBd);
+  border-radius: 12px;
+  padding: 12px 12px;
+  background: #ffffff;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+}
+.tutorInput:focus{
+  border-color: var(--primaryHover);
+  box-shadow: 0 0 0 3px rgba(74,169,230,0.18);
+}
+
+.tutorActions{
+  display:flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.tutorSendBtn{
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+  min-width: 92px;
+}
+.tutorSendBtn:hover{
+  background: var(--primaryHover);
+  border-color: var(--primaryHover);
+}
+.tutorSendBtn:disabled{
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.tutorOut{
+  margin-top: 12px;
+  border: 1px solid var(--tutorBd);
+  border-radius: 12px;
+  background: #fff;
+  padding: 12px;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  font-size: 14px;
+}
+.tutorOut.muted{
+  color: rgba(77, 81, 88, 0.596);
+  background: rgba(255,255,255,0.75);
+}
+
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <div class="header-inner">
+      <div class="h-left">
+        <div class="h-title">{{ title }}</div>
+        <div class="h-sub">
+          <span>Reading</span>
+          {% if review_mode %}<span class="badge">Review Mode</span>{% endif %}
+          {% if mode %}<span class="badge">{{ mode }}</span>{% endif %}
+          <span class="badge">Q {{ current_index }} / {{ total_questions }}</span>
+        </div>
+      </div>
+
+      <div class="rightBox">
+        <div class="timerBox">
+          <div class="timeLabel">Time Left</div>
+          <div class="timeValue" id="timeLeft">--:--</div>
+          <div class="progress" aria-hidden="true"><div id="timeBar"></div></div>
+        </div>
+
+        <div class="topActions">
+          {% if review_mode %}
+            {% if can_prev %}<a class="btn secondary" href="/exam/{{ attempt_id }}?q={{ prev_index }}&review=1">《 Previous</a>{% endif %}
+            {% if can_next %}<a class="btn secondary" href="/exam/{{ attempt_id }}?q={{ next_index }}&review=1">Next 》</a>{% endif %}
+            <a class="btn" href="/">Home</a>
+            <a class="btn secondary" href="/result/{{ attempt_id }}">Results</a>
+          {% else %}
+            {% if mode == "single" %}
+              <button class="btn" type="submit" form="examForm">Submit</button>
+            {% else %}
+              {% if current_index == 1 %}
+                <a class="btn secondary" href="/passage/{{ attempt_id }}">Passage</a>
+              {% elif can_prev %}
+                <button class="btn secondary" type="submit" form="navPrevForm">Previous</button>
+              {% endif %}
+
+              {% if is_last %}
+                <button class="btn" type="submit" form="examForm">Submit</button>
+              {% else %}
+                <button class="btn" type="submit" form="navNextForm">Next</button>
+              {% endif %}
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="layout">
+
+      <!-- LEFT: Passage -->
+      <div class="pane passage">
+        {% set m = (current_q.get("meta", {}) if current_q and current_q.get("meta") is mapping else {}) %}
+        {% set is_q9p = (m.get("question_type") == "insert_sentence") %}
+
+        {% if is_q9p and m.get("paragraph_text") %}
+          {% set p = m.get("paragraph_text") %}
+        {% else %}
+          {% set p = passage or "" %}
+        {% endif %}
+
+        {{ p
+          | replace("[A]", "<span class='marker'>[A]</span>")
+          | replace("[B]", "<span class='marker'>[B]</span>")
+          | replace("[C]", "<span class='marker'>[C]</span>")
+          | replace("[D]", "<span class='marker'>[D]</span>")
+          | safe
+        }}
+      </div>
+
+      <!-- RIGHT: Question + Tutor -->
+      <div class="pane">
+        {% set q = current_q %}
+        {% if q %}
+          {% set meta = (q.get("meta", {}) if q.get("meta") is mapping else {}) %}
+          {% set is_q9 = (meta.get("question_type") == "insert_sentence") %}
+          {% set is_summary = (q.type == "summary" or meta.get("question_type") == "summary") %}
+
+          {% set ca_raw = (correct_answers.get(q.id) if review_mode and correct_answers is defined else none) %}
+          {% set ca_list = [] %}
+          {% if ca_raw is string %}
+            {% set s = (ca_raw|string)|upper|trim %}
+            {% if s|length > 1 %}
+              {% for ch in s|list %}
+                {% if ch|trim != "" %}
+                  {% set _ = ca_list.append(ch) %}
+                {% endif %}
+              {% endfor %}
+            {% elif s != "" %}
+              {% set _ = ca_list.append(s) %}
+            {% endif %}
+          {% elif ca_raw is sequence %}
+            {% for x in ca_raw %}
+              {% if x is not none and (x|string)|trim != "" %}
+                {% set _ = ca_list.append((x|string)|upper) %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+
+          <form method="post" action="/exam/{{ attempt_id }}/submit" id="examForm">
+            <input type="hidden" name="_current_qid" value="{{ q.id }}">
+
+            <div class="qbox">
+              <div class="qhead">
+                <span>Question {{ current_index }}</span>
+                {% if q.type != "single" or is_summary %}<span class="badge">Multiple Answer</span>{% endif %}
+                {% if is_q9 %}<span class="badge">Insert Sentence</span>{% endif %}
+              </div>
+
+              {% if is_q9 and meta.get("sentence") %}
+                <div class="q9Box">
+                  <div class="q9Label">Sentence to insert</div>
+                  <div class="q9Sentence">{{ meta.get("sentence") }}</div>
+                </div>
+              {% endif %}
+
+              <div class="qprompt">{{ q.prompt }}</div>
+
+              {% if is_summary and q.intro %}
+                <div class="qintro">{{ q.intro }}</div>
+              {% endif %}
+
+              {% if (q.type != "single") or is_summary %}
+                {% if is_summary %}
+                  <div class="hint strong">Select any number of answer choices.</div>
+                {% else %}
+                  <div class="hint">Select 2 answers.</div>
+                {% endif %}
+              {% endif %}
+
+              {% if (q.type == "single") and (not is_summary) %}
+                {% set ua = (saved_answers.get(q.id) or "")|string|upper %}
+                {% for c in q.choices %}
+                  {% set letter = (c[0]|string|upper) %}
+                  {% set text = c[1] %}
+                  {% set is_user = (ua == letter) %}
+                  {% set is_correct = (review_mode and (letter in ca_list)) %}
+                  {% set is_wrong = (review_mode and is_user and (not is_correct)) %}
+
+                  <label class="choice{% if is_correct %} correct{% endif %}{% if is_wrong %} wrong{% endif %}">
+                    <input
+                      type="radio"
+                      name="ans_{{ q.id }}"
+                      value="{{ letter }}"
+                      {% if is_user %}checked{% endif %}
+                      {% if not review_mode %}required{% endif %}
+                      {% if review_mode %}disabled{% endif %}
+                    >
+                    <div><b>{{ letter }}.</b> {{ text }}</div>
+                  </label>
+                {% endfor %}
+              {% else %}
+                {% set ua_list = [] %}
+                {% set ua_raw = saved_answers.get(q.id) %}
+                {% if ua_raw is string %}
+                  {% set s = (ua_raw|string)|upper|trim %}
+                  {% if s|length > 1 %}
+                    {% for ch in s|list %}
+                      {% if ch|trim != "" %}
+                        {% set _ = ua_list.append(ch) %}
+                      {% endif %}
+                    {% endfor %}
+                  {% elif s != "" %}
+                    {% set _ = ua_list.append(s) %}
+                  {% endif %}
+                {% elif ua_raw is sequence %}
+                  {% for x in ua_raw %}
+                    {% if x is not none and (x|string)|trim != "" %}
+                      {% set _ = ua_list.append((x|string)|upper) %}
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+
+                {% for c in q.choices %}
+                  {% set letter = (c[0]|string|upper) %}
+                  {% set text = c[1] %}
+                  {% set is_user = (letter in ua_list) %}
+                  {% set is_correct = (review_mode and (letter in ca_list)) %}
+                  {% set is_wrong = (review_mode and is_user and (not is_correct)) %}
+
+                  <label class="choice{% if is_correct %} correct{% endif %}{% if is_wrong %} wrong{% endif %}">
+                    <input
+                      type="checkbox"
+                      name="ans_{{ q.id }}"
+                      value="{{ letter }}"
+                      {% if is_user %}checked{% endif %}
+                      {% if review_mode %}disabled{% endif %}
+                    >
+                    <div><b>{{ letter }}.</b> {{ text }}</div>
+                  </label>
+                {% endfor %}
+              {% endif %}
+            </div>
+          </form>
+
+          {% if not review_mode and mode != "single" %}
+            <form method="post" action="/exam/{{ attempt_id }}/save" id="navPrevForm" style="display:none;">
+              <input type="hidden" name="target" value="{{ prev_index }}">
+            </form>
+
+            <form method="post" action="/exam/{{ attempt_id }}/save" id="navNextForm" style="display:none;">
+              <input type="hidden" name="target" value="{{ next_index }}">
+            </form>
+          {% endif %}
+
+          <!-- Tutor UI (shown in review mode; you can change condition if you want always-on) -->
+          {% if review_mode %}
+          <div class="tutorCard" id="tutorCard">
+  <div class="tutorTitle">
+    <div class="tutorTitleLeft">
+      <div class="tutorIcon">🐂</div>
+      <div class="tutorName">Verraco Tutor</div>
+    </div>
+    <button class="tutorClearTop" id="tutorClearBtn" type="button">Clear</button>
+  </div>
+
+  <p class="tutorHint">
+    Ask anything about the passage!
+  </p>
+
+  <textarea class="tutorInput" id="tutorInput" rows="3" placeholder="Type your question..."></textarea>
+
+  <div class="tutorActions">
+    <button class="tutorSendBtn" id="tutorAskBtn" type="button">Send</button>
+  </div>
+
+  <div class="tutorOut muted" id="tutorOut">No response yet.</div>
+</div>
+
+          {% endif %}
+
+        {% else %}
+          <div class="qbox">No question found.</div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+
+<script>
+  const reviewMode = {{ 'true' if review_mode else 'false' }};
+
+  const duration = Number({{ duration_seconds | default(0) }}) || 0;
+  const startedAtSecRaw = {{ started_at | default(0) }};
+  const startedAtSec = Number(startedAtSecRaw);
+  const startedAt = (Number.isFinite(startedAtSec) && startedAtSec > 0) ? (startedAtSec * 1000) : Date.now();
+
+  let tickHandle = null;
+  let stopped = false;
+
+  function stopTimerUI() {
+    stopped = true;
+    if (tickHandle) {
+      clearTimeout(tickHandle);
+      tickHandle = null;
+    }
+  }
+
+  function fmt(s) {
+    const m = Math.floor(s / 60);
+    const r = s % 60;
+    return String(m).padStart(2,'0') + ":" + String(r).padStart(2,'0');
+  }
+
+  function tick() {
+    if (stopped) return;
+
+    const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+    const left = Math.max(0, duration - elapsed);
+
+    const timeEl = document.getElementById("timeLeft");
+    if (timeEl) timeEl.textContent = fmt(left);
+
+    const bar = document.getElementById("timeBar");
+    if (bar) {
+      const pct = duration > 0 ? Math.min(100, Math.max(0, (elapsed / duration) * 100)) : 0;
+      bar.style.width = pct.toFixed(2) + "%";
+    }
+
+    if (reviewMode) {
+      stopTimerUI();
+      return;
+    }
+
+    if (left <= 0) {
+      stopTimerUI();
+      const form = document.getElementById("examForm");
+      if (form) {
+        form.noValidate = true;
+        form.action = "/exam/{{ attempt_id }}/autosubmit";
+        form.submit();
+      }
+      return;
+    }
+
+    tickHandle = setTimeout(tick, 500);
+  }
+
+  function disableSubmitButton() {
+    const btn = document.querySelector('button[form="examForm"]');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "Submitting...";
+    }
+  }
+
+  function copyCheckedInputsTo(targetForm) {
+    const examForm = document.getElementById("examForm");
+    if (!examForm || !targetForm) return;
+
+    targetForm.querySelectorAll("input[data-copied='1']").forEach(x => x.remove());
+
+    examForm.querySelectorAll("input:checked").forEach(inp => {
+      const h = document.createElement("input");
+      h.type = "hidden";
+      h.name = inp.name;
+      h.value = inp.value;
+      h.setAttribute("data-copied", "1");
+      targetForm.appendChild(h);
+    });
+  }
+
+  function bindNavButtonCopy() {
+    const prevForm = document.getElementById("navPrevForm");
+    const nextForm = document.getElementById("navNextForm");
+
+    if (prevForm) {
+      prevForm.addEventListener("submit", function () {
+        copyCheckedInputsTo(prevForm);
+      });
+    }
+    if (nextForm) {
+      nextForm.addEventListener("submit", function () {
+        copyCheckedInputsTo(nextForm);
+      });
+    }
+  }
+
+  function bindSubmitStopsTimer() {
+    const form = document.getElementById("examForm");
+    if (!form) return;
+
+    form.addEventListener("submit", function () {
+      stopTimerUI();
+      disableSubmitButton();
+    });
+  }
+
+  // Tutor JS (review mode only)
+  async function tutorAsk() {
+    const out = document.getElementById("tutorOut");
+    const btn = document.getElementById("tutorAskBtn");
+    const inp = document.getElementById("tutorInput");
+    if (!out || !btn || !inp) return;
+
+    const user_question = (inp.value || "").trim();
+    if (!user_question) {
+      out.classList.add("muted");
+      out.textContent = "Type a question first.";
+      return;
+    }
+
+    btn.disabled = true;
+    out.classList.remove("muted");
+    out.textContent = "🐂 Verraco is Thinking...";
+
+    try {
+      const payload = {
+        attempt_id: "{{ attempt_id }}",
+        qid: "{{ current_q.id if current_q else '' }}",
+        passage: "",
+        question: "",
+        user_question: user_question
+      };
+
+      const resp = await fetch("/tutor", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(payload)
+      });
+
+      const data = await resp.json();
+      if (!data || data.ok !== true) {
+        out.textContent = "Tutor error.";
+      } else {
+        out.textContent = data.answer || "";
+      }
+    } catch (e) {
+      out.textContent = "Tutor request failed.";
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function tutorClear() {
+    const out = document.getElementById("tutorOut");
+    const inp = document.getElementById("tutorInput");
+    if (inp) inp.value = "";
+    if (out) {
+      out.classList.add("muted");
+      out.textContent = "No tutor response yet.";
+    }
+  }
+
+  function bindTutor() {
+    const ask = document.getElementById("tutorAskBtn");
+    const clr = document.getElementById("tutorClearBtn");
+    const inp = document.getElementById("tutorInput");
+
+    if (ask) ask.addEventListener("click", tutorAsk);
+    if (clr) clr.addEventListener("click", tutorClear);
+
+    if (inp) {
+      inp.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          tutorAsk();
+        }
+      });
+    }
+  }
+
+  bindNavButtonCopy();
+  bindSubmitStopsTimer();
+  bindTutor();
+  tick();
+</script>
+
+</body>
+</html>

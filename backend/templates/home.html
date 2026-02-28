@@ -1,0 +1,178 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>verraco</title>
+  <style>
+    :root{
+      --bg:#a9bee6;
+      --panel:#ffffffb9;
+      --text:#111827;
+      --muted:#6b7280c0;
+      --line:#035c2f;
+      --primary:#080330;
+      --primaryHover:#4ea9e6;
+    }
+
+    body{
+      font-family: Arial, Helvetica, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .wrap{
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 22px 16px;
+    }
+
+    .card{
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    h2{
+      margin: 0 0 8px 0;
+      font-size: 20px;
+      letter-spacing: 0.2px;
+    }
+
+    .muted{
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 14px;
+      margin: 0 0 14px 0;
+    }
+
+    .row{
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .label{
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .input{
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      width: 260px;
+    }
+
+    /* Keep timer narrower */
+    .input--timer{
+      width: 120px;
+    }
+
+    .btn{
+      background: var(--primary);
+      color: #fff;
+      border: 1px solid var(--primary);
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .btn:hover{
+      background: var(--primaryHover);
+      border-color: var(--primaryHover);
+    }
+
+    .note{
+      margin-top: 14px;
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    ul{
+      margin: 8px 0 0 18px;
+      padding: 0;
+    }
+
+    .tiny{
+      font-size: 12px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h2>Welcome to Verraco🐂!</h2>
+
+      <p class="muted">
+        This is a lightweight TOEFL Reading simulator for practice. You will read a passage,
+        answer questions, and submit for scoring.
+      </p>
+
+      <form method="post" action="/start">
+        <!-- NEW: Your two modes -->
+        <div class="row">
+          <span class="label">🔍 Mode</span>
+          <select class="input" name="mode" id="modeSel">
+            <option value="full" selected>📚Full Set</option>
+            <option value="single">🎯Single Question</option>
+          </select>
+          <span class="tiny">Recommended: Full Set for realistic pacing</span>
+        </div>
+
+        <!-- NEW: Only for single mode -->
+        <div class="row" id="singleRow" style="display:none;">
+          <span class="label">Question #</span>
+          <select class="input" name="single_index">
+            {% for i in range(1, 11) %}
+              <option value="{{ i }}">{{ i }}</option>
+            {% endfor %}
+          </select>
+          <span class="tiny">You will do 1 question and submit immediately</span>
+        </div>
+
+        <!-- Existing timer + start -->
+        <div class="row">
+          <span class="label">⏱️ Timer (minutes)</span>
+          <input class="input input--timer" name="minutes" type="number" min="1" max="120" value="{{ default_minutes }}">
+          <button class="btn" type="submit">Start</button>
+        </div>
+
+        <div class="note">
+          <b>What to expect</b>
+          <ul>
+            <li>Each question is on its own page (Previous / Next).</li>
+            <li>Answers are auto-saved when you navigate.</li>
+            <li>A countdown timer will auto-submit when time runs out.</li>
+          </ul>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const modeSel = document.getElementById("modeSel");
+    const singleRow = document.getElementById("singleRow");
+
+    function syncModeUI() {
+      const v = modeSel.value;
+      singleRow.style.display = (v === "single") ? "flex" : "none";
+    }
+
+    modeSel.addEventListener("change", syncModeUI);
+    syncModeUI();
+  </script>
+</body>
+</html>
